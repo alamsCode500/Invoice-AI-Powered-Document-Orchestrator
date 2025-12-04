@@ -1,0 +1,356 @@
+{
+  "name": "Invoice Automation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "=invoice-orchestrator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        80
+      ],
+      "id": "d0ed2ee7-a00e-41e7-980b-e790e9dac5b8",
+      "webhookId": "3fbc09d9-714a-4231-beee-4eaec492f16a"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are an assistant that MUST output only valid JSON.\\n\\nSUMMARY:\\n{{ $json.body.extracted_json.summary }}\\n\\nUSER QUESTION:\\n{{ $json.body.user_question }}\\n\\nSTRICT RULES:\\n- Output ONLY valid JSON.\\n- No backticks, no markdown.\\n\\nRESPONSE FORMAT:\\n{\\n  \\\"final_answer\\\": \\\"string\\\",\\n  \\\"email_body\\\": \\\"string\\\",\\n  \\\"automation_status\\\": \\\"string\\\"\\n}\\n\\nTASK:\\n1) Provide an analytical answer based on the summary.\\n2) Draft a professional email body that can be sent to the recipient.\"\n        }\n      ]\n    }\n  ]\n}\n",
+        "headerParametersJson": "{\n  \"Content-Type\": \"application/json\"\n}",
+        "queryParametersJson": "{\n  \"key\": \"AIzaSyD80gqwm_8YvamY4ynHS41q6q2th-k_74E\"\n}"
+      },
+      "name": "AI Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        80
+      ],
+      "id": "5f4a031f-5918-494b-ae7b-7ff4f0e64298"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "risk_level",
+              "value": "={{ $('Webhook').item.json.body.extracted_json.risk_level || 'Unknown' }}"
+            },
+            {
+              "name": "recipient_email",
+              "value": "={{ $('Webhook').item.json.body.recipient_email }}"
+            },
+            {
+              "name": "final_answer",
+              "value": "={{JSON.parse($json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]).final_answer}}"
+            },
+            {
+              "name": "email_body",
+              "value": "={{JSON.parse($json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]).email_body}}"
+            },
+            {
+              "name": "automation_status",
+              "value": "={{JSON.parse($json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]).automation_status}}"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "name": "Set Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        80
+      ],
+      "id": "93e0365e-97b7-44ff-bd08-455baa361500"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Webhook').item.json.body.extracted_json.risk_level }}",
+              "value2": "High"
+            }
+          ]
+        }
+      },
+      "name": "IF Risk High",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        80
+      ],
+      "id": "aad4da3d-083b-401d-8759-3d54368cf54e"
+    },
+    {
+      "parameters": {
+        "fromEmail": "your_email@gmail.com",
+        "toEmail": "={{ $('Webhook').item.json.body.recipient_email }}",
+        "subject": "Invoice Risk Alert",
+        "text": "={{JSON.parse($json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]).email_body}}",
+        "options": {}
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "85af94de-eda0-4382-9f3c-a12166f4bf8a",
+      "credentials": {
+        "smtp": {
+          "id": "TgGIN2NH6793T6tZ",
+          "name": "SMTP account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "final_answer",
+              "value": "={{ JSON.parse($('Set Fields').item.json.candidates[0].content.parts[0].text).final_answer }}\n"
+            },
+            {
+              "name": "email_body",
+              "value": "={{ JSON.parse($('Set Fields').item.json.candidates[0].content.parts[0].text).email_body }}\n"
+            },
+            {
+              "name": "=automation_status",
+              "value": "={{ JSON.parse($('Set Fields').item.json.candidates[0].content.parts[0].text).automation_status }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Response Sent",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "fb70005b-db47-4d6f-af39-05c5cdcefad5"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "final_answer",
+              "value": "={{JSON.parse($json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]).final_answer}}"
+            },
+            {
+              "name": "email_body",
+              "value": "No email sent; risk not High."
+            },
+            {
+              "name": "automation_status",
+              "value": "Low risk - no email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Response Low Risk",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ],
+      "id": "0d8dd060-7f1e-4f6b-bbec-1059bb7b14f8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        80
+      ],
+      "id": "ec78ce98-1db1-40d0-8055-281fbc2460fb"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "user-agent": "python-requests/2.32.5",
+            "accept-encoding": "gzip, deflate",
+            "accept": "*/*",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "content-length": "1385"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "document_text": "Invoice - Large Vendor (High Amount)\nVendor: Global Equipment Corp\nInvoice No: INV-8900\nInvoice Date: 2025-11-05\nDue Date: 2025-12-05\nItem Qty Price Amount\nIndustrial Motor 1 85000.00 85000.00\nInstallation Service 1 12000.00 12000.00\nTotal 97000.00",
+            "extracted_json": {
+              "extracted_pairs": [
+                {
+                  "key": "Due Date",
+                  "value": "2025-12-05",
+                  "confidence": 1,
+                  "reason": "This is the date by which payment is expected, directly addressing the 'pay date' query."
+                },
+                {
+                  "key": "Invoice Date",
+                  "value": "2025-11-05",
+                  "confidence": 1,
+                  "reason": "Provides context for when the invoice was issued, which is related to the payment timeline."
+                },
+                {
+                  "key": "Total",
+                  "value": "97000.00",
+                  "confidence": 1,
+                  "reason": "The total amount due, essential information for any payment."
+                },
+                {
+                  "key": "Invoice No",
+                  "value": "INV-8900",
+                  "confidence": 1,
+                  "reason": "Unique identifier for the invoice, crucial for tracking payments."
+                },
+                {
+                  "key": "Vendor",
+                  "value": "Global Equipment Corp",
+                  "confidence": 1,
+                  "reason": "Identifies the recipient of the payment."
+                }
+              ],
+              "risk_level": "High",
+              "summary": "This invoice from Global Equipment Corp (INV-8900) dated 2025-11-05 has a total amount due of 97000.00, with a due date of 2025-12-05, for an Industrial Motor and Installation Service."
+            },
+            "user_question": "pay date",
+            "recipient_email": "tauseefalam26@gmail.com",
+            "file_name": "invoice_large.pdf"
+          },
+          "webhookUrl": "http://localhost:5678/webhook-test/invoice-orchestrator",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Fields": {
+      "main": [
+        [
+          {
+            "node": "IF Risk High",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Risk High": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Response Low Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Set Response Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Response Sent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Response Low Risk": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "8082aa9a-dd64-4c1f-97f2-1ac0791e67ed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dfaad5f440d2ad53f341cc863239f0f8cd39f03758d7b34b40adc2560cd13688"
+  },
+  "id": "5VHPpzAIV60xl63g",
+  "tags": []
+}
