@@ -107,8 +107,8 @@ def call_gemini(document_text: str, user_question: str) -> Dict[str, Any]:
         "- Do NOT explain.\n"
         "- Only return JSON matching the schema.\n"
     )
-    api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-chat:generateContent?key={GEMINI_KEY}"
-    #api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+    #api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-chat:generateContent?key={GEMINI_KEY}"
+    api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
     payload = {"contents":[{"parts":[{"text": SYSTEM_PROMPT + "\n\n" + user_prompt}]}],
                "generationConfig": {"temperature":0.0, "maxOutputTokens":1500}}
     headers = {"Content-Type":"application/json"}
@@ -228,4 +228,5 @@ if uploaded_file and user_question:
 
 else:
     st.info("ℹ️ Upload an invoice and ask a question to begin.")
+
 
