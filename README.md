@@ -63,3 +63,7 @@ Gemini extracts invoice data
 Conditional email triggers via button
 
 All outputs render cleanly in UI
+
+UI View:
+
+<img width="1920" height="3337" alt="image" src="https://github.com/user-attachments/assets/be5e1e39-0025-4569-976d-df634a0215ae" />
