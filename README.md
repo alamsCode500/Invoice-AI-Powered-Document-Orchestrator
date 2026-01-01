@@ -184,9 +184,9 @@ Low	        < 5,000
 
 * View:
 
-* * Extracted structured JSON
+  * Extracted structured JSON
 
-* * AI-generated invoice summary
+  * AI-generated invoice summary
 
 * Enter recipient email
 
@@ -194,18 +194,24 @@ Low	        < 5,000
 
 * Receive:
 
-* * Final analytical answer
+  * Final analytical answer
 
-* * Email content
+  * Email content
 
-* * Automation status
+  * Automation status
 
 # 📂 Project Structure
+
 Invoice-AI-Document-Orchestrator/
+
 │
+
 ├── app.py                      # Streamlit application
+
 ├── requirements.txt            # Dependencies
+
 ├── README.md                   # Project documentation
+
 └── n8n_workflow.json           # Invoice automation workflow
 
 # ⚙️ Setup & Installation
