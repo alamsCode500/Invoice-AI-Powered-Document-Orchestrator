@@ -42,19 +42,33 @@ This project automates that process by:
 # 🧠 Solution Architecture
 
 User → Streamlit UI
+
         ↓
+
 Invoice Upload (PDF/TXT)
+
         ↓
+
 Text Extraction (pdfplumber / PyMuPDF)
+
         ↓
+
 Gemini AI (Structured JSON Extraction)
+
         ↓
+
 Risk Classification (Low / Medium / High)
+
         ↓
+
 n8n Workflow Orchestration
+
         ↓
+
 Conditional Email Alert
+
         ↓
+
 Final Response to User
 
 # 🔧 Tech Stack
@@ -103,15 +117,15 @@ Final Response to User
 
 * Extracts key invoice fields:
 
-* * Vendor
+  * Vendor
 
-* * Invoice number
+  * Invoice number
 
-* * Invoice date
+  * Invoice date
 
-* * Due date
+  * Due date
 
-* * Total amount
+  * Total amount
 
 * Confidence score & reasoning for each field
 
